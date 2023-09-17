@@ -1,0 +1,8 @@
+﻿{
+	"name": "Named Pet Tags",
+	"description": "A Valheim mod to change the behavior of tamed creatures by putting tags on their names.",
+	"author": "Fusionette",
+	"version_number": "0.9.0",
+	"website_url": "https://github.com/Fusionette/NamedPetTags/releases",
+	"dependencies": ["denikson-BepInExPack_Valheim-5.4.2105"]
+}
