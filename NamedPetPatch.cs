@@ -12,10 +12,8 @@ namespace NamedPetTags
         {
             string petName = __instance.GetText();
 
-            if (petName.Contains("<pet>"))
-            {
-                __result = __result.Insert(__result.IndexOf(" )"), ", Pet");
-            }
+            if (petName.Contains("<pet>")) __result = __result.Insert(__result.IndexOf(" )"), ", Pet");
+            if (petName.Contains("<spay>")) __result = __result.Insert(__result.IndexOf(" )"), ", Spayed");
         }
 
         [HarmonyPatch(typeof(Tameable), "SetName")]
@@ -40,13 +38,25 @@ namespace NamedPetTags
             }
         }
 
+        [HarmonyPatch(typeof(Procreation), "ReadyForProcreation")]
+        [HarmonyPostfix]
+        public static void Procreation_ReadyForProcreation(Tameable ___m_tameable, ref bool __result)
+        {
+            string petName = ___m_tameable.GetText();
+
+            if (petName.Contains("<spay>"))
+            {
+                __result = false;
+            }
+        }
+
         [HarmonyPatch(typeof(Procreation), "MakePregnant")]
         [HarmonyPostfix]
         public static void Procreation_MakePregnant(Tameable ___m_tameable, ZNetView ___m_nview)
         {
             string petName = ___m_tameable.GetText();
 
-            if (petName.Contains("<pet>"))
+            if (petName.Contains("<spay>"))
             {
                 ___m_nview.GetZDO().Set(ZDOVars.s_pregnant, 0L);
             }
@@ -58,7 +68,7 @@ namespace NamedPetTags
         {
             string petName = ___m_tameable.GetText();
 
-            if (petName.Contains("<pet>"))
+            if (petName.Contains("<spay>"))
             {
                 ___m_nview.GetZDO().Set(ZDOVars.s_pregnant, 0L);
                 __result = false;
