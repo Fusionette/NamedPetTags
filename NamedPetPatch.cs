@@ -18,6 +18,15 @@ namespace NamedPetTags
             }
         }
 
+        [HarmonyPatch(typeof(Tameable), "SetName")]
+        [HarmonyPrefix]
+        public static bool Tameable_SetName(Tameable __instance, Character ___m_character)
+        {
+            if (!___m_character.IsTamed()) return false;
+            TextInput.instance.RequestText(__instance, "$hud_rename", 100);
+            return false;
+        }
+
         [HarmonyPatch(typeof(Character), "ApplyDamage")]
         [HarmonyPostfix]
         public static void Character_ApplyDamage(Character __instance, HitData hit, ref bool showDamageText, ref bool triggerEffects, ref HitData.DamageModifier mod, Tameable ___m_tameable)
