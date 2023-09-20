@@ -27,10 +27,11 @@ namespace NamedPetTags
 
         [HarmonyPatch(typeof(Character), "ApplyDamage")]
         [HarmonyPostfix]
-        public static void Character_ApplyDamage(Character __instance, HitData hit, ref bool showDamageText, ref bool triggerEffects, ref HitData.DamageModifier mod, Tameable ___m_tameable)
+        public static void Character_ApplyDamage(Character __instance, HitData hit, bool showDamageText, bool triggerEffects, HitData.DamageModifier mod)
         {
-            if (!__instance.IsTamed() || ___m_tameable == false) return;
-            string petName = ___m_tameable.GetText();
+            Tameable tameable = __instance.GetComponent<Tameable>();
+            if (!__instance.IsTamed() || tameable == null) return;
+            string petName = tameable.GetText();
 
             if (petName.Contains("<pet>"))
             {
