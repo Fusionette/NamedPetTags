@@ -84,17 +84,17 @@ namespace NamedPetTags
         {
             if (!___m_character.IsTamed()) return;
             Tameable tameable = ___m_character.GetComponent<Tameable>();
-            ApplyPetColor(__instance, tameable.GetText());
+            ApplyPetTags(tameable, __instance);
         }
 
         [HarmonyPatch(typeof(Tameable), "RPC_SetName")]
         [HarmonyPostfix]
-        public static void Tameable_RPC_SetName(Tameable __instance, long sender, string name, string authorId, Character ___m_character)
+        public static void Tameable_RPC_SetName(Tameable __instance, long sender, string name, string authorId, Character ___m_character, ZNetView ___m_nview)
         {
             FieldInfo fi = typeof(Character).GetField("m_visual", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             GameObject visual = fi.GetValue(___m_character) as GameObject;
             LevelEffects levelEffects = visual.GetComponent<LevelEffects>();
-            ApplyPetColor(levelEffects, __instance.GetText());
+            ApplyPetTags(__instance, levelEffects);
         }
 
         private static bool TryParseAttrib(string petName, string attrib, out int value)
@@ -116,15 +116,18 @@ namespace NamedPetTags
             return result;
         }
 
-        private static void ApplyPetColor(LevelEffects levelEffects, string petName)
+        private static void ApplyPetTags(Tameable pet, LevelEffects levelEffects)
         {
             int i;
             Material[] materials = levelEffects.m_mainRender.sharedMaterials;
             materials[0] = new Material(materials[0]);
 
+            string petName = pet.GetText();
+
             if (TryParseAttrib(petName, "h", out i)) materials[0].SetFloat("_Hue", i / 360f);
             if (TryParseAttrib(petName, "s", out i)) materials[0].SetFloat("_Saturation", i / 100f);
             if (TryParseAttrib(petName, "v", out i)) materials[0].SetFloat("_Value", i / 100f);
+            if (TryParseAttrib(petName, "follow", out i)) pet.m_commandable = (i != 0);
 
             levelEffects.m_mainRender.sharedMaterials = materials;
         }
