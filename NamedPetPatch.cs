@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using System.Globalization;
+using System.Reflection;
 using UnityEngine;
 
 namespace NamedPetTags
@@ -74,6 +76,57 @@ namespace NamedPetTags
                 ___m_nview.GetZDO().Set(ZDOVars.s_pregnant, 0L);
                 __result = false;
             }
+        }
+
+        [HarmonyPatch(typeof(LevelEffects), "Start")]
+        [HarmonyPostfix]
+        public static void LevelEffects_Start(LevelEffects __instance, Character ___m_character)
+        {
+            if (!___m_character.IsTamed()) return;
+            Tameable tameable = ___m_character.GetComponent<Tameable>();
+            ApplyPetColor(__instance, tameable.GetText());
+        }
+
+        [HarmonyPatch(typeof(Tameable), "RPC_SetName")]
+        [HarmonyPostfix]
+        public static void Tameable_RPC_SetName(Tameable __instance, long sender, string name, string authorId, Character ___m_character)
+        {
+            FieldInfo fi = typeof(Character).GetField("m_visual", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            GameObject visual = fi.GetValue(___m_character) as GameObject;
+            LevelEffects levelEffects = visual.GetComponent<LevelEffects>();
+            ApplyPetColor(levelEffects, __instance.GetText());
+        }
+
+        private static bool TryParseAttrib(string petName, string attrib, out int value)
+        {
+            int i;
+            value = 0;
+
+            i = petName.IndexOf("<" + attrib + "=");
+            if (i < 0) return false;
+
+            string str = petName.Substring(i + attrib.Length + 2);
+
+            i = str.IndexOf(">");
+            if (i < 0) return false;
+            
+            str = str.Substring(0, i);
+
+            bool result = int.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+            return result;
+        }
+
+        private static void ApplyPetColor(LevelEffects levelEffects, string petName)
+        {
+            int i;
+            Material[] materials = levelEffects.m_mainRender.sharedMaterials;
+            materials[0] = new Material(materials[0]);
+
+            if (TryParseAttrib(petName, "h", out i)) materials[0].SetFloat("_Hue", i / 360f);
+            if (TryParseAttrib(petName, "s", out i)) materials[0].SetFloat("_Saturation", i / 100f);
+            if (TryParseAttrib(petName, "v", out i)) materials[0].SetFloat("_Value", i / 100f);
+
+            levelEffects.m_mainRender.sharedMaterials = materials;
         }
     }
 }
