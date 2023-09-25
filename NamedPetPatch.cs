@@ -15,6 +15,7 @@ namespace NamedPetTags
             string petName = __instance.GetText();
 
             if (petName.Contains("<pet>")) __result = __result.Insert(__result.IndexOf(" )"), ", Pet");
+            if (petName.Contains("<bed>")) __result = __result.Insert(__result.IndexOf(" )"), ", Bed");
             if (petName.Contains("<spay>")) __result = __result.Insert(__result.IndexOf(" )"), ", Spayed");
         }
 
@@ -34,6 +35,17 @@ namespace NamedPetTags
             Tameable tameable = __instance.GetComponent<Tameable>();
             if (!__instance.IsTamed() || tameable == null) return;
             string petName = tameable.GetText();
+
+            if (__instance.GetHealth() < 1f && petName.Contains("<bed>"))
+            {
+                __instance.SetHealth(__instance.GetMaxHealth());
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, tameable.GetHoverName() + " has been wounded!", 0, null);
+
+                if (Game.instance.GetPlayerProfile().HaveCustomSpawnPoint())
+                    __instance.transform.position = Game.instance.GetPlayerProfile().GetCustomSpawnPoint();
+                else
+                    __instance.transform.position = Game.instance.GetPlayerProfile().GetHomePoint();
+            }
 
             if (petName.Contains("<pet>"))
             {
