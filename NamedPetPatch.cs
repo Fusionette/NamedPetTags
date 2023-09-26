@@ -131,15 +131,19 @@ namespace NamedPetTags
         private static void ApplyPetTags(Tameable pet, LevelEffects levelEffects)
         {
             int i;
+            string petName = pet.GetText();
+
+            if (TryParseAttrib(petName, "follow", out i)) pet.m_commandable = (i != 0);
+
+            // Hens don't have a Renderer attached, don't try to apply color changes.
+            if (levelEffects.m_mainRender == null) return;
+
             Material[] materials = levelEffects.m_mainRender.sharedMaterials;
             materials[0] = new Material(materials[0]);
-
-            string petName = pet.GetText();
 
             if (TryParseAttrib(petName, "h", out i)) materials[0].SetFloat("_Hue", i / 360f);
             if (TryParseAttrib(petName, "s", out i)) materials[0].SetFloat("_Saturation", i / 100f);
             if (TryParseAttrib(petName, "v", out i)) materials[0].SetFloat("_Value", i / 100f);
-            if (TryParseAttrib(petName, "follow", out i)) pet.m_commandable = (i != 0);
 
             levelEffects.m_mainRender.sharedMaterials = materials;
         }
